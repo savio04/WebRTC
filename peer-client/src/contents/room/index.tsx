@@ -4,7 +4,10 @@ import { Draggable } from "../../components/LocalVideo";
 import { Video } from "../../components/Video";
 import { pc_config } from "../../constants";
 import { useRoomContext } from "../../context/RoomContext";
-import { ButtonsContainer, Container, ContainerVideos, LocalVideo, RemoteVideo } from "./styles";
+import { ButtonsContainer, ButtonsContainerLocaVideo, Container, ContainerVideos, LocalVideo, RemoteVideo } from "./styles";
+import { BiMicrophone, BiMicrophoneOff, BiVideo, BiVideoOff } from 'react-icons/bi'
+import { FiPhone, FiPhoneOff } from 'react-icons/fi'
+import Link from "next/link";
 
 interface IRoomContentProps {
   roomId: string;
@@ -14,17 +17,15 @@ export function RoomContent({ roomId }: IRoomContentProps) {
   const socket = useRef<Socket<any, any> | null>(null);
   const localVideo = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
   const peersConnection = useRef<any>();
 
   const localStream = useRef<MediaStream>();
   const [remoteStreams, setRemoteStreams] = useState<{ id: string; name: string; stream: MediaStream }[]>([]);
   const remoteStreasmRef = useRef<{ id: string; name: string; stream: MediaStream }[]>([])
 
-  //
-  const [pressed, setPressed] = useState(false)
-  const [position, setPosition] = useState<{x: number; y: number;} | null>(null)
-  
+  const [mic, setMic] = useState(false)
+  const [video, setVideo] = useState(false)
+
   //Criar Peer quando um usuario está online
   function CreatePeerConnection(socketID: string) {
     try{
@@ -92,6 +93,9 @@ export function RoomContent({ roomId }: IRoomContentProps) {
 
         //Emite que tem um novo usuario online
         socket.current?.emit('onlinePeers', { payload: null, socketID: { local: socket.current.id } })
+        //
+        setMic(true)
+        setVideo(true)
       }
 
     }catch(error) {
@@ -101,9 +105,36 @@ export function RoomContent({ roomId }: IRoomContentProps) {
   },[])
 
 
+  const mutMic = () => {
+    if(localVideo.current?.srcObject) {
+      const localVideoData = localVideo.current.srcObject as MediaStream
+
+      const stream = localVideoData.getTracks().filter(track => track.kind === 'audio')
+
+      if(stream) {
+        stream[0].enabled = !mic
+        setMic((prevState) => !prevState)
+      }
+    }
+  }
+
+  const mutVideo = () => {
+    if(localVideo.current?.srcObject) {
+      const localVideoData = localVideo.current.srcObject as MediaStream
+
+      const stream = localVideoData.getTracks().filter(track => track.kind === 'video')
+
+      if(stream) {
+        stream[0].enabled = !video
+        setVideo((prevState) => !prevState)
+      }
+    }
+  }
+
   useEffect(() => {
+    console.log("process.env.NEXT_PUBLIC_SERVER", process.env.NEXT_PUBLIC_SERVER)
     if(!socket.current) {
-      socket.current = io('http://localhost:3001/webrtc', { query: { roomName: roomId } })
+      socket.current = io(`${process.env.NEXT_PUBLIC_SERVER}/webrtc`, { query: { roomName: roomId } })
       
       //connection sucess
       socket.current.on('connection-success', (data: any) => {
@@ -162,8 +193,6 @@ export function RoomContent({ roomId }: IRoomContentProps) {
   
       socket.current.on('candidate', (data: any) => {
         // get remote's peerConnection
-        console.log("candidate", data)
-        console.log("peersConnection.current", peersConnection.current)
         const peerConnection = peersConnection.current[data.socketID]
   
         peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate))
@@ -195,7 +224,25 @@ export function RoomContent({ roomId }: IRoomContentProps) {
           muted 
           playsInline 
           autoPlay
-          ></LocalVideo>
+        />
+          
+        <ButtonsContainerLocaVideo mic={mic} video={video}>
+          <span>
+            <button onClick={mutMic} className="mic">
+              {mic ? <BiMicrophone size={20} /> : <BiMicrophoneOff size={20} />}
+            </button>
+
+            <Link href={'/home'}>
+              <button>
+                <FiPhone size={20}  />
+              </button>
+            </Link>
+
+            <button onClick={mutVideo} className="video">
+              {video ? <BiVideo  size={20}/> : <BiVideoOff size={20}/> }
+            </button>
+          </span>
+        </ButtonsContainerLocaVideo>
       </Draggable>
       
       <ContainerVideos>
@@ -212,7 +259,7 @@ export function RoomContent({ roomId }: IRoomContentProps) {
           <span>
             <h2>Só você esta aqui!</h2>
             <h3>Convide mais pessoas compartilhando o link abaixo</h3>
-            <p>{`http://localhost:3000/room/${roomId}`}</p>
+            <p>{`${process.env.NEXT_PUBLIC_BASEURL}/room/${roomId}`}</p>
           </span>
         )}
       </ContainerVideos>

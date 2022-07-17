@@ -1,5 +1,4 @@
 import { GetServerSideProps } from "next"
-import { io, Socket } from "socket.io-client"
 import { RoomContent } from "../../contents/room"
 
 interface IRoomProps {

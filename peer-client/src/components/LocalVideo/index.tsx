@@ -18,11 +18,11 @@ export function Draggable ({children, ...rest}: IDraggableProps) {
   }, [position])
 
   // Update the current position if mouse is down
-  const onMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
-    if(pressed) {
+  const onMouseMove = (event: any, type = 'normal') => {
+    if(pressed || type === 'mobile') {
       setPosition({
-        x: position ? position.x + event.movementX : event.movementX,
-        y: position ? position.y + event.movementY : event.movementY
+        x: position ? position.x + event.movementX || 50 : event.movementX,
+        y: position ? position.y + event.movementY || 50 : event.movementY
       })
     }
   }
@@ -34,6 +34,10 @@ export function Draggable ({children, ...rest}: IDraggableProps) {
       onMouseDown={ () => setPressed(true) }
       onMouseUp={ () => setPressed(false) }
       onMouseOut={() => setPressed(false)}
+      onTouchMove={(event) => onMouseMove(event, 'mobile')}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
+      // onTouchMoveCapture={onMouseMove}
       {...rest}
     >
       {children}
