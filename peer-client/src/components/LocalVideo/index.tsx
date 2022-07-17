@@ -34,10 +34,6 @@ export function Draggable ({children, ...rest}: IDraggableProps) {
       onMouseDown={ () => setPressed(true) }
       onMouseUp={ () => setPressed(false) }
       onMouseOut={() => setPressed(false)}
-      // onTouchMove={(event) => onMouseMove(event, 'mobile')}
-      // onTouchStart={() => setPressed(true)}
-      // onTouchEnd={() => setPressed(false)}
-      // onTouchMoveCapture={onMouseMove}
       {...rest}
     >
       {children}

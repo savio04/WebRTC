@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { Draggable } from "../../components/LocalVideo";
 import { Video } from "../../components/Video";
 import { pc_config } from "../../constants";
-import { useRoomContext } from "../../context/RoomContext";
 import { ButtonsContainer, ButtonsContainerLocaVideo, Container, ContainerVideos, LocalVideo, RemoteVideo } from "./styles";
 import { BiMicrophone, BiMicrophoneOff, BiVideo, BiVideoOff } from 'react-icons/bi'
 import { FiPhone, FiPhoneOff } from 'react-icons/fi'
 import Link from "next/link";
+import ReactTooltip from 'react-tooltip';
 
 interface IRoomContentProps {
   roomId: string;
@@ -26,10 +26,14 @@ export function RoomContent({ roomId }: IRoomContentProps) {
   const [mic, setMic] = useState(false)
   const [video, setVideo] = useState(false)
 
+  //
+  const url = useMemo(() => {
+    return window?.location?.href || ''
+  }, [])
+
   //Criar Peer quando um usuario está online
   function CreatePeerConnection(socketID: string) {
     try{
-      console.log("create peer for", socketID)
       const newPeerConnection = new RTCPeerConnection(pc_config)
   
       peersConnection.current = {...peersConnection.current, [socketID]: newPeerConnection}
@@ -132,20 +136,16 @@ export function RoomContent({ roomId }: IRoomContentProps) {
   }
 
   useEffect(() => {
-    console.log("process.env.NEXT_PUBLIC_SERVER", process.env.NEXT_PUBLIC_SERVER)
     if(!socket.current) {
       socket.current = io(`${process.env.NEXT_PUBLIC_SERVER}/webrtc`, { query: { roomName: roomId } })
       
       //connection sucess
       socket.current.on('connection-success', (data: any) => {
-        console.log('connection', data.success)
-
         getLocalStream()
       })
 
       //peer disconnected
       socket.current.on('peer-disconnected', (data: any) => {
-        console.log("data", data)
         const remoteStremDeleted = remoteStreasmRef.current.filter(stream => String(stream.id) !== String(data.socketID))
         setRemoteStreams(remoteStremDeleted)
       })
@@ -210,6 +210,7 @@ export function RoomContent({ roomId }: IRoomContentProps) {
 
   return (
     <Container>
+      <ReactTooltip />
       <Draggable 
         style={{
           zIndex: 1,
@@ -259,7 +260,7 @@ export function RoomContent({ roomId }: IRoomContentProps) {
           <span>
             <h2>Só você esta aqui!</h2>
             <h3>Convide mais pessoas compartilhando o link abaixo</h3>
-            <p>{`${process.env.NEXT_PUBLIC_BASEURL}/room/${roomId}`}</p>
+            <p>{url}</p>
           </span>
         )}
       </ContainerVideos>
