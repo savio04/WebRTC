@@ -1,11 +1,17 @@
 {
   "dependencies": {
+    "@babel/cli": "^7.18.6",
+    "@babel/core": "^7.18.6",
+    "@babel/node": "^7.18.6",
+    "@babel/preset-env": "^7.18.6",
+    "@babel/preset-typescript": "^7.18.6",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "socket.io": "^4.5.1"
   },
   "scripts": {
-    "dev:server": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "dev:server": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "babel src --extensions \".js,.ts\" --out-dir dist --copy-files"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
