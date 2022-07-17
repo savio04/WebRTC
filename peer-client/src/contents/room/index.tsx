@@ -25,11 +25,7 @@ export function RoomContent({ roomId }: IRoomContentProps) {
 
   const [mic, setMic] = useState(false)
   const [video, setVideo] = useState(false)
-
-  //
-  const url = useMemo(() => {
-    return window?.location?.href || ''
-  }, [])
+  const url = useRef<string | null>(null)
 
   //Criar Peer quando um usuario está online
   function CreatePeerConnection(socketID: string) {
@@ -136,6 +132,11 @@ export function RoomContent({ roomId }: IRoomContentProps) {
   }
 
   useEffect(() => {
+    //getUrl
+    if(!url.current) {
+      url.current = window.location.href
+    }
+
     if(!socket.current) {
       socket.current = io(`${process.env.NEXT_PUBLIC_SERVER}/webrtc`, { query: { roomName: roomId } })
       
@@ -260,7 +261,7 @@ export function RoomContent({ roomId }: IRoomContentProps) {
           <span>
             <h2>Só você esta aqui!</h2>
             <h3>Convide mais pessoas compartilhando o link abaixo</h3>
-            <p>{url}</p>
+            <p>{url.current ? url.current : 'Indisponivel'}</p>
           </span>
         )}
       </ContainerVideos>
