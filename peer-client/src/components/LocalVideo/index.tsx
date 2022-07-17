@@ -1,0 +1,42 @@
+import { forwardRef, ForwardRefRenderFunction, HTMLAttributes, MouseEventHandler, useEffect, useRef, useState, VideoHTMLAttributes } from "react";
+import { Container, Video } from "./styles";
+
+interface IDraggableProps extends HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+export function Draggable ({children, ...rest}: IDraggableProps) {
+  const [pressed, setPressed] = useState(false)
+  const [position, setPosition] = useState<{x: number; y: number;} | null>({x: 0, y: 0})
+  const divRef = useRef<HTMLDivElement | null>(null)
+
+  // Monitor changes to position state and update DOM
+  useEffect(() => {
+    if(position && divRef.current) {
+      divRef.current.style.transform = `translate(${position.x}px, ${position.y}px)`
+    }
+  }, [position])
+
+  // Update the current position if mouse is down
+  const onMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
+    if(pressed) {
+      setPosition({
+        x: position ? position.x + event.movementX : event.movementX,
+        y: position ? position.y + event.movementY : event.movementY
+      })
+    }
+  }
+
+  return (
+    <Container
+      ref={divRef}
+      onMouseMove = {onMouseMove}
+      onMouseDown={ () => setPressed(true) }
+      onMouseUp={ () => setPressed(false) }
+      onMouseOut={() => setPressed(false)}
+      {...rest}
+    >
+      {children}
+    </Container>
+  )
+}
