@@ -1,4 +1,4 @@
-import express, { Express } from "express";
+import { Express } from "express";
 import http from "http";
 import { Server } from "socket.io";
 
@@ -114,8 +114,8 @@ export class SocketConnection {
     return this;
   }
 
-  listnerServer(msg: string) {
-    this.server.listen(process.env.PORT, () => {
+  listnerServer(msg: string, port = 3001,) {
+    this.server.listen(port, () => {
       console.log(`${msg}`);
     });
   }
